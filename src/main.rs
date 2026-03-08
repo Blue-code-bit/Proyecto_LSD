@@ -29,6 +29,8 @@ async fn obtener_lecciones(pool: web::Data<sqlx::SqlitePool>) -> impl Responder 
     .expect("Error al obtener lecciones"); // Si falla, muestra error
 
     HttpResponse::Ok().json(lecciones) // Devuelve las lecciones en formato JSON
+    curl http://127.0.0.1:8080/lecciones
+
 }
 
 // POST: crear una nueva lección
@@ -49,6 +51,10 @@ async fn crear_leccion(pool: web::Data<sqlx::SqlitePool>, leccion: web::Json<Lec
         Ok(_) => HttpResponse::Created().body("Lección creada"), // Éxito
         Err(_) => HttpResponse::InternalServerError().body("Error al crear lección"), // Error
     }
+    curl -X POST http://127.0.0.1:8080/lecciones \
+-H "Content-Type: application/json" \
+-d '{"id":4,"titulo":"Colores","descripcion":"Aprender colores en LSM","url_video":"https://ejemplo.com/video"}'
+
 }
 
 // PUT: actualizar una lección existente
@@ -76,6 +82,10 @@ async fn actualizar_leccion(
         Ok(_) => HttpResponse::Ok().body("Lección actualizada"), // Éxito
         Err(_) => HttpResponse::InternalServerError().body("Error al actualizar lección"), // Error
     }
+    curl -X PUT http://127.0.0.1:8080/lecciones/2 \
+-H "Content-Type: application/json" \
+-d '{"id":2,"titulo":"Saludos y Despedidas","descripcion":"Decir hola, adiós y buenas noches","url_video":"https://ejemplo.com/saludos"}'
+
 }
 
 // DELETE: borrar una lección
@@ -96,6 +106,8 @@ async fn borrar_leccion(pool: web::Data<sqlx::SqlitePool>, path: web::Path<i32>)
         Ok(_) => HttpResponse::Ok().body(format!("Lección {} eliminada", id)), // Éxito
         Err(_) => HttpResponse::InternalServerError().body("Error al eliminar lección"), // Error
     }
+    curl -X DELETE http://127.0.0.1:8080/lecciones/3
+
 }
 
 
