@@ -1,28 +1,37 @@
-// Importamos las librerías necesarias para nuestro servidor
-use actix_web::{get, post, put, delete, web, App, HttpResponse, HttpServer, Responder}; 
-// actix-web: framework para crear el servidor y definir rutas HTTP
+//  IMPORTACIÓN DE LIBRERÍAS
+// Actix-web: framework para crear el servidor y definir rutas HTTP
+use actix_web::{get, post, put, delete, web, App, HttpResponse, HttpServer, Responder};
 
-use serde::{Serialize, Deserialize}; 
-// serde: librería que nos ayuda a convertir datos entre JSON y estructuras de Rust
+// Serde: librería que convierte datos entre JSON y estructuras de Rust
+use serde::{Serialize, Deserialize};
 
-use sqlx::sqlite::SqlitePoolOptions; 
-// sqlx: librería para conectarnos y trabajar con la base de datos SQLite
+// SQLx: librería para conectarnos y trabajar con la base de datos SQLite
+use sqlx::sqlite::SqlitePoolOptions;
 
-// Definimos la estructura que representa una lección en nuestra base de datos
-#[derive(Serialize, Deserialize)] // Esto permite que se convierta automáticamente a JSON y desde JSON
+
+//DEFINICIÓN DE LA ESTRUCTURA
+
+// Esta estructura representa una lección en nuestra base de datos
+// Cada campo corresponde a una columna en la tabla "lecciones"
+#[derive(Serialize, Deserialize)] // Permite convertir automáticamente entre JSON y Rust
 struct Leccion {
-    id: i32,              // Identificador único de la lección
-    titulo: String,       // Título de la lección
-    descripcion: String,  // Breve descripción de la lección
-    url_video: String,    // Enlace al video asociado
+     // Identificador único de la lección
+    id: i32, 
+     // Título de la lección
+    titulo: String,
+     // Breve descripción de la lección
+    descripcion: String, 
+     // Enlace al video asociado
+    url_video: String,   
 }
+
 
 // RUTAS CRUD
 
 // GET: obtener todas las lecciones guardadas en la base de datos
 #[get("/lecciones")] // Esta ruta se activa cuando alguien hace GET a /lecciones
 async fn obtener_lecciones(pool: web::Data<sqlx::SqlitePool>) -> impl Responder {
-    // Ejecutamos una consulta SQL que trae todas las filas de la tabla "lecciones"
+    // Consulta SQL que trae todas las filas de la tabla "lecciones"
     let lecciones = sqlx::query_as!(
         Leccion, // Los resultados se convierten en nuestra estructura Leccion
         r#"SELECT id, titulo, descripcion, url_video FROM lecciones"#
@@ -34,6 +43,7 @@ async fn obtener_lecciones(pool: web::Data<sqlx::SqlitePool>) -> impl Responder 
     HttpResponse::Ok().json(lecciones) // Respondemos con un JSON que contiene todas las lecciones
 }
 
+
 // POST: crear una nueva lección
 #[post("/lecciones")] // Esta ruta se activa cuando alguien hace POST a /lecciones
 async fn crear_leccion(pool: web::Data<sqlx::SqlitePool>, leccion: web::Json<Leccion>) -> impl Responder {
@@ -41,9 +51,9 @@ async fn crear_leccion(pool: web::Data<sqlx::SqlitePool>, leccion: web::Json<Lec
     let resultado = sqlx::query!(
         r#"INSERT INTO lecciones (titulo, descripcion, url_video) VALUES (?, ?, ?)"#,
         // Título que viene en el JSON
-        leccion.titulo,
-        // Descripción que viene en el JSON
-        leccion.descripcion,  
+        leccion.titulo,  
+         // Descripción que viene en el JSON
+        leccion.descripcion, 
         // URL del video que viene en el JSON
         leccion.url_video     
     )
@@ -57,16 +67,20 @@ async fn crear_leccion(pool: web::Data<sqlx::SqlitePool>, leccion: web::Json<Lec
     }
 }
 
+
 // PUT: actualizar una lección existente
 #[put("/lecciones/{id}")] // Esta ruta se activa cuando alguien hace PUT a /lecciones/{id}
 async fn actualizar_leccion(
-    pool: web::Data<sqlx::SqlitePool>, // Conexión a la base
-    path: web::Path<i32>,              // ID de la lección que viene en la URL
-    leccion: web::Json<Leccion>,       // Datos nuevos que vienen en el JSON
+    // Conexión a la base
+    pool: web::Data<sqlx::SqlitePool>, 
+    // ID de la lección que viene en la URL
+    path: web::Path<i32>,  
+    // Datos nuevos que vienen en el JSON
+    leccion: web::Json<Leccion>,       
 ) -> impl Responder {
     let id = path.into_inner(); // Extraemos el ID de la URL
 
-    // Ejecutamos la consulta SQL para actualizar la fila correspondiente
+    // Consulta SQL para actualizar la fila correspondiente
     let resultado = sqlx::query!(
         r#"UPDATE lecciones SET titulo = ?, descripcion = ?, url_video = ? WHERE id = ?"#,
         leccion.titulo,
@@ -84,12 +98,13 @@ async fn actualizar_leccion(
     }
 }
 
+
 // DELETE: borrar una lección
 #[delete("/lecciones/{id}")] // Esta ruta se activa cuando alguien hace DELETE a /lecciones/{id}
 async fn borrar_leccion(pool: web::Data<sqlx::SqlitePool>, path: web::Path<i32>) -> impl Responder {
     let id = path.into_inner(); // Extraemos el ID de la URL
 
-    // Ejecutamos la consulta SQL para eliminar la fila correspondiente
+    // Consulta SQL para eliminar la fila correspondiente
     let resultado = sqlx::query!(
         r#"DELETE FROM lecciones WHERE id = ?"#,
         id
@@ -105,8 +120,7 @@ async fn borrar_leccion(pool: web::Data<sqlx::SqlitePool>, path: web::Path<i32>)
 }
 
 
-//FUNCIÓN PRINCIPAL 
-
+//  FUNCIÓN PRINCIPAL
 
 // Esta es la función principal que arranca el servidor
 #[actix_web::main] // Macro que indica que es el punto de entrada del servidor Actix
@@ -121,16 +135,17 @@ async fn main() -> std::io::Result<()> {
     HttpServer::new(move || {
         App::new()
             .app_data(web::Data::new(pool.clone())) // Compartimos la conexión con todas las rutas
-             // Registramos la ruta GET
-        .service(obtener_lecciones)
+         // Registramos la ruta GET
+            .service(obtener_lecciones) 
         // Registramos la ruta POST
-            .service(crear_leccion) 
-        // Registramos la ruta PUT
+            .service(crear_leccion)
+         // Registramos la ruta PUT
             .service(actualizar_leccion) 
          // Registramos la ruta DELETE
             .service(borrar_leccion)               
     })
     .bind(("127.0.0.1", 8080))? // El servidor escucha en localhost:8080
-    .run()  // Arrancamos el servidor
-    .await   // Esperamos a que termine
+    .run() // Arrancamos el servidor
+    .await // Esperamos a que termine
 }
+
