@@ -30,6 +30,10 @@ async fn main() -> std::io::Result<()> {
         // Registramos la aplicación y sus rutas
         App::new()
             .service(hello) // añadimos la ruta definida arriba
+        App::new()
+            .service(hello)
+            .service(saludo) // aquí ya está registrada
+
     })
     // Indicamos en qué dirección y puerto escuchará el servidor
     .bind(("127.0.0.1", 8080))? 
