@@ -6,12 +6,19 @@
 // - Responder: para definir qué devuelve una función como respuesta
 use actix_web::{get, App, HttpResponse, HttpServer, Responder};
 
-// Definimos una ruta GET en la raíz ("/")
+// Definimos una RUTA GET en la raíz ("/")
 // Esta función se ejecuta cuando alguien entra a http://localhost:8080/
 #[get("/")]
 async fn hello() -> impl Responder {
     // Respondemos con un mensaje respuesta
-    HttpResponse::Ok().body("Servidor Rust funcionando")
+    HttpResponse::Ok().body("Servidor Rust funcionando :D")
+}
+// Ruta GET en "/saludo"
+// Cuando alguien entra a http://localhost:8080/saludo
+#[get("/saludo")]
+async fn saludo() -> impl Responder {
+    // Respondemos con un mensaje distinto
+    HttpResponse::Ok().body("Hola wap@, esta es otra ruta")
 }
 
 // Función principal del programa
@@ -29,5 +36,18 @@ async fn main() -> std::io::Result<()> {
     // Ejecutamos el servidor de manera asíncrona
     .run()
     .await
+
+    #[actix_web::main]
+async fn main() -> std::io::Result<()> {
+    HttpServer::new(|| {
+        App::new()
+            .service(hello)   // ruta raíz "/"
+            .service(saludo)  // nueva ruta "/saludo"
+    })
+    .bind(("127.0.0.1", 8080))?
+    .run()
+    .await
+}
+
 }
 
