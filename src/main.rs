@@ -1,57 +1,75 @@
-// Importamos las librerías necesarias de actix-web
-// - get: para definir rutas HTTP tipo GET
-// - App: para construir la aplicación web
-// - HttpResponse: para enviar respuestas HTTP
-// - HttpServer: para levantar el servidor
-// - Responder: para definir qué devuelve una función como respuesta
+// Importamos las librerías necesarias
 use actix_web::{get, App, HttpResponse, HttpServer, Responder};
+use serde::Serialize; // Para convertir structs en JSON
 
-// Definimos una RUTA GET en la raíz ("/")
-// Esta función se ejecuta cuando alguien entra a http://localhost:8080/
+
+// 1. Definición de rutas simples
+
+
+// Ruta raíz "/"
 #[get("/")]
 async fn hello() -> impl Responder {
-    // Respondemos con un mensaje respuesta
     HttpResponse::Ok().body("Servidor Rust funcionando :D")
 }
-// Ruta GET en "/saludo"
-// Cuando alguien entra a http://localhost:8080/saludo
+
+// Ruta secundaria "/saludo"
 #[get("/saludo")]
 async fn saludo() -> impl Responder {
-    // Respondemos con un mensaje distinto
     HttpResponse::Ok().body("Hola wap@, esta es otra ruta")
 }
 
-// Función principal del programa
-// #[actix_web::main] indica que es el punto de entrada y usa el runtime de Actix
+
+// 2. Definición de datos y ruta JSON
+
+
+// Estructura de una lección
+#[derive(Serialize)]
+struct Leccion {
+    id: i32,
+    titulo: String,
+    descripcion: String,
+    url_video: String,
+}
+
+// Ruta que devuelve una lista de lecciones en JSON
+#[get("/lecciones")]
+async fn lecciones() -> impl Responder {
+    let lista = vec![
+        Leccion {
+            id: 1,
+            titulo: "Abecedario".to_string(),
+            descripcion: "Lengua de Señas Mexicana: Abecedario".to_string(),
+            url_video: "https://drive.google.com/file/d/1QiDygeeYMRdpjdcaW7RBoI1ONDeFQa".to_string(),
+        },
+        Leccion {
+            id: 2,
+            titulo: "Saludos y Despedidas".to_string(),
+            descripcion: "Decir hola y adiós".to_string(),
+            url_video: "https://drive.google.com/file/d/1Ia-ZsbgGY6XssTOOJSo9MyHyHor5M4O/view".to_string(),
+        },
+        Leccion {
+            id: 3,
+            titulo: "Groserías".to_string(),
+            descripcion: "Malas palabras".to_string(),
+            url_video: "https://youtu.be/A5jLGCtHZRY?si=Q0ZoUYfh7xkFQxL2".to_string(),
+        },
+    ];
+
+    HttpResponse::Ok().json(lista)
+}
+
+
+// 3. Función principal
+
 #[actix_web::main]
 async fn main() -> std::io::Result<()> {
-    // Creamos el servidor HTTP
-    HttpServer::new(|| {
-        // Registramos la aplicación y sus rutas
-        App::new()
-            .service(hello) // añadimos la ruta definida arriba
-        App::new()
-            .service(hello)
-            .service(saludo) // aquí ya está registrada
-
-    })
-    // Indicamos en qué dirección y puerto escuchará el servidor
-    .bind(("127.0.0.1", 8080))? 
-    // Ejecutamos el servidor de manera asíncrona
-    .run()
-    .await
-
-    #[actix_web::main]
-async fn main() -> std::io::Result<()> {
     HttpServer::new(|| {
         App::new()
-            .service(hello)   // ruta raíz "/"
-            .service(saludo)  // nueva ruta "/saludo"
+            .service(hello)     // ruta raíz "/"
+            .service(saludo)    // ruta "/saludo"
+            .service(lecciones) // ruta "/lecciones" con JSON
     })
-    .bind(("127.0.0.1", 8080))?
+    .bind(("127.0.0.1", 8080))? // puerto donde escucha el servidor
     .run()
     .await
 }
-
-}
-
