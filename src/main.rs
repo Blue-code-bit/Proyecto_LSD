@@ -9,20 +9,16 @@ use serde::{Serialize, Deserialize};
 use sqlx::sqlite::SqlitePoolOptions;
 
 
-//DEFINICIÓN DE LA ESTRUCTURA
+// DEFINICIÓN DE LA ESTRUCTURA
 
 // Esta estructura representa una lección en nuestra base de datos
 // Cada campo corresponde a una columna en la tabla "lecciones"
 #[derive(Serialize, Deserialize)] // Permite convertir automáticamente entre JSON y Rust
 struct Leccion {
-     // Identificador único de la lección
-    id: i32, 
-     // Título de la lección
-    titulo: String,
-     // Breve descripción de la lección
-    descripcion: String, 
-     // Enlace al video asociado
-    url_video: String,   
+    id: i32,             // Identificador único de la lección
+    titulo: String,      // Título de la lección
+    descripcion: String, // Breve descripción de la lección
+    url_video: String,   // Enlace al video asociado
 }
 
 
@@ -40,7 +36,8 @@ async fn obtener_lecciones(pool: web::Data<sqlx::SqlitePool>) -> impl Responder 
     .await
     .expect("Error al obtener lecciones"); // Si algo falla, mostramos un error
 
-    HttpResponse::Ok().json(lecciones) // Respondemos con un JSON que contiene todas las lecciones
+    // Respondemos con un JSON que contiene todas las lecciones
+    HttpResponse::Ok().json(lecciones)
 }
 
 
@@ -50,12 +47,9 @@ async fn crear_leccion(pool: web::Data<sqlx::SqlitePool>, leccion: web::Json<Lec
     // Insertamos una nueva fila en la tabla "lecciones"
     let resultado = sqlx::query!(
         r#"INSERT INTO lecciones (titulo, descripcion, url_video) VALUES (?, ?, ?)"#,
-        // Título que viene en el JSON
-        leccion.titulo,  
-         // Descripción que viene en el JSON
-        leccion.descripcion, 
-        // URL del video que viene en el JSON
-        leccion.url_video     
+        leccion.titulo,      // Título que viene en el JSON
+        leccion.descripcion, // Descripción que viene en el JSON
+        leccion.url_video    // URL del video que viene en el JSON
     )
     .execute(pool.get_ref()) // Ejecutamos la consulta
     .await;
@@ -71,12 +65,9 @@ async fn crear_leccion(pool: web::Data<sqlx::SqlitePool>, leccion: web::Json<Lec
 // PUT: actualizar una lección existente
 #[put("/lecciones/{id}")] // Esta ruta se activa cuando alguien hace PUT a /lecciones/{id}
 async fn actualizar_leccion(
-    // Conexión a la base
-    pool: web::Data<sqlx::SqlitePool>, 
-    // ID de la lección que viene en la URL
-    path: web::Path<i32>,  
-    // Datos nuevos que vienen en el JSON
-    leccion: web::Json<Leccion>,       
+    pool: web::Data<sqlx::SqlitePool>, // Conexión a la base
+    path: web::Path<i32>,              // ID de la lección que viene en la URL
+    leccion: web::Json<Leccion>,       // Datos nuevos que vienen en el JSON
 ) -> impl Responder {
     let id = path.into_inner(); // Extraemos el ID de la URL
 
@@ -120,10 +111,17 @@ async fn borrar_leccion(pool: web::Data<sqlx::SqlitePool>, path: web::Path<i32>)
 }
 
 
-//  FUNCIÓN PRINCIPAL
+// RUTA RAÍZ
+// Esta ruta se activa cuando alguien entra a la raíz "/"
+#[get("/")]
+async fn raiz() -> impl Responder {
+    HttpResponse::Ok().body("servidor rust funcionando :D")
+}
 
+
+// FUNCIÓN PRINCIPAL
 // Esta es la función principal que arranca el servidor
-#[actix_web::main] // Macro que indica que es el punto de entrada del servidor Actix
+#[actix_web::main]
 async fn main() -> std::io::Result<()> {
     // Creamos el "pool" de conexión a la base de datos SQLite
     let pool = SqlitePoolOptions::new()
@@ -131,21 +129,23 @@ async fn main() -> std::io::Result<()> {
         .await
         .expect("No se pudo conectar a la base de datos");
 
+    // Mensaje de confirmación en la terminal
+    println!("Servidor corriendo en http://0.0.0.0:8080");
+
     // Iniciamos el servidor HTTP en el puerto 8080
     HttpServer::new(move || {
         App::new()
             .app_data(web::Data::new(pool.clone())) // Compartimos la conexión con todas las rutas
-         // Registramos la ruta GET
-            .service(obtener_lecciones) 
-        // Registramos la ruta POST
-            .service(crear_leccion)
-         // Registramos la ruta PUT
-            .service(actualizar_leccion) 
-         // Registramos la ruta DELETE
-            .service(borrar_leccion)               
+         // Registramos la ruta raíz "/"
+            .service(raiz)
+            .service(obtener_lecciones)// Registramos la ruta GET /lecciones
+            .service(crear_leccion)// Registramos la ruta POST /lecciones
+            .service(actualizar_leccion)// Registramos la ruta PUT /lecciones/{id}
+            .service(borrar_leccion)// Registramos la ruta DELETE /lecciones/{id}
     })
-    .bind(("127.0.0.1", 8080))? // El servidor escucha en localhost:8080
+    .bind(("0.0.0.0", 8080))? // El servidor escucha en todas las interfaces
     .run() // Arrancamos el servidor
     .await // Esperamos a que termine
 }
+
 
