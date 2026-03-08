@@ -28,6 +28,7 @@ struct Leccion {
 #[get("/lecciones")] // Esta ruta se activa cuando alguien hace GET a /lecciones
 async fn obtener_lecciones(pool: web::Data<sqlx::SqlitePool>) -> impl Responder {
     // Consulta SQL que trae todas las filas de la tabla "lecciones"
+     println!("Entrando a obtener_lecciones"); //prueba
     let lecciones = sqlx::query_as!(
         Leccion, // Los resultados se convierten en nuestra estructura Leccion
         r#"SELECT id, titulo, descripcion, url_video FROM lecciones"#
