@@ -120,9 +120,12 @@ async fn raiz() -> impl Responder {
 
 
 // FUNCIÓN PRINCIPAL
-// Esta es la función principal que arranca el servidor
+
 #[actix_web::main]
 async fn main() -> std::io::Result<()> {
+    // Mensaje para confirmar que estamos registrando las rutas
+    println!("Registrando rutas: /, /lecciones, /lecciones POST, PUT, DELETE");
+
     // Creamos el "pool" de conexión a la base de datos SQLite
     let pool = SqlitePoolOptions::new()
         .connect("sqlite://proyecto_lsd.db") // Nos conectamos al archivo proyecto_lsd.db
@@ -136,16 +139,13 @@ async fn main() -> std::io::Result<()> {
     HttpServer::new(move || {
         App::new()
             .app_data(web::Data::new(pool.clone())) // Compartimos la conexión con todas las rutas
-         // Registramos la ruta raíz "/"
-            .service(raiz)
-            .service(obtener_lecciones)// Registramos la ruta GET /lecciones
-            .service(crear_leccion)// Registramos la ruta POST /lecciones
-            .service(actualizar_leccion)// Registramos la ruta PUT /lecciones/{id}
-            .service(borrar_leccion)// Registramos la ruta DELETE /lecciones/{id}
+            .service(raiz)                // Registramos la ruta raíz "/"
+            .service(obtener_lecciones)   // Registramos la ruta GET /lecciones
+            .service(crear_leccion)       // Registramos la ruta POST /lecciones
+            .service(actualizar_leccion)  // Registramos la ruta PUT /lecciones/{id}
+            .service(borrar_leccion)      // Registramos la ruta DELETE /lecciones/{id}
     })
     .bind(("0.0.0.0", 8080))? // El servidor escucha en todas las interfaces
     .run() // Arrancamos el servidor
     .await // Esperamos a que termine
 }
-
-
