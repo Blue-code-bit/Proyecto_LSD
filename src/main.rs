@@ -1,62 +1,72 @@
-// Importamos las librerías necesarias
-use actix_web::{get, post, put, delete, web, App, HttpResponse, HttpServer, Responder}; // Actix-web para servidor y rutas
-use serde::{Serialize, Deserialize}; // Serde para convertir datos entre JSON y Rust
-use sqlx::sqlite::SqlitePoolOptions; // SQLx para conectarnos a SQLite
+// Importamos las librerías necesarias para nuestro servidor
+use actix_web::{get, post, put, delete, web, App, HttpResponse, HttpServer, Responder}; 
+// actix-web: framework para crear el servidor y definir rutas HTTP
 
-// Definimos la estructura de datos que representa una lección
-#[derive(Serialize, Deserialize)] // Permite convertir entre JSON y Rust automáticamente
+use serde::{Serialize, Deserialize}; 
+// serde: librería que nos ayuda a convertir datos entre JSON y estructuras de Rust
+
+use sqlx::sqlite::SqlitePoolOptions; 
+// sqlx: librería para conectarnos y trabajar con la base de datos SQLite
+
+// Definimos la estructura que representa una lección en nuestra base de datos
+#[derive(Serialize, Deserialize)] // Esto permite que se convierta automáticamente a JSON y desde JSON
 struct Leccion {
-    // Identificador único de la lección
-    id: i32,
-     // Título de la lección
-    titulo: String, 
-    // Descripción breve
-    descripcion: String,
-    // Enlace al video
-    url_video: String,    
+    id: i32,              // Identificador único de la lección
+    titulo: String,       // Título de la lección
+    descripcion: String,  // Breve descripción de la lección
+    url_video: String,    // Enlace al video asociado
 }
 
-// GET: obtener todas las lecciones desde la base de datos
-#[get("/lecciones")]
+// RUTAS CRUD
+
+// GET: obtener todas las lecciones guardadas en la base de datos
+#[get("/lecciones")] // Esta ruta se activa cuando alguien hace GET a /lecciones
 async fn obtener_lecciones(pool: web::Data<sqlx::SqlitePool>) -> impl Responder {
+    // Ejecutamos una consulta SQL que trae todas las filas de la tabla "lecciones"
     let lecciones = sqlx::query_as!(
-        Leccion,
+        Leccion, // Los resultados se convierten en nuestra estructura Leccion
         r#"SELECT id, titulo, descripcion, url_video FROM lecciones"#
     )
-    .fetch_all(pool.get_ref())
+    .fetch_all(pool.get_ref()) // Ejecutamos la consulta usando la conexión a la base
     .await
-    .expect("Error al obtener lecciones");
+    .expect("Error al obtener lecciones"); // Si algo falla, mostramos un error
 
-    HttpResponse::Ok().json(lecciones)
+    HttpResponse::Ok().json(lecciones) // Respondemos con un JSON que contiene todas las lecciones
 }
 
 // POST: crear una nueva lección
-#[post("/lecciones")]
+#[post("/lecciones")] // Esta ruta se activa cuando alguien hace POST a /lecciones
 async fn crear_leccion(pool: web::Data<sqlx::SqlitePool>, leccion: web::Json<Leccion>) -> impl Responder {
+    // Insertamos una nueva fila en la tabla "lecciones"
     let resultado = sqlx::query!(
         r#"INSERT INTO lecciones (titulo, descripcion, url_video) VALUES (?, ?, ?)"#,
+        // Título que viene en el JSON
         leccion.titulo,
-        leccion.descripcion,
-        leccion.url_video
+        // Descripción que viene en el JSON
+        leccion.descripcion,  
+        // URL del video que viene en el JSON
+        leccion.url_video     
     )
-    .execute(pool.get_ref())
+    .execute(pool.get_ref()) // Ejecutamos la consulta
     .await;
 
+    // Verificamos si se insertó correctamente
     match resultado {
-        Ok(_) => HttpResponse::Created().body("Lección creada"),
-        Err(_) => HttpResponse::InternalServerError().body("Error al crear lección"),
+        Ok(_) => HttpResponse::Created().body("Lección creada"), // Si todo salió bien
+        Err(_) => HttpResponse::InternalServerError().body("Error al crear lección"), // Si hubo error
     }
 }
 
 // PUT: actualizar una lección existente
-#[put("/lecciones/{id}")]
+#[put("/lecciones/{id}")] // Esta ruta se activa cuando alguien hace PUT a /lecciones/{id}
 async fn actualizar_leccion(
-    pool: web::Data<sqlx::SqlitePool>,
-    path: web::Path<i32>,
-    leccion: web::Json<Leccion>,
+    pool: web::Data<sqlx::SqlitePool>, // Conexión a la base
+    path: web::Path<i32>,              // ID de la lección que viene en la URL
+    leccion: web::Json<Leccion>,       // Datos nuevos que vienen en el JSON
 ) -> impl Responder {
-    let id = path.into_inner();
+    let id = path.into_inner(); // Extraemos el ID de la URL
 
+    // Ejecutamos la consulta SQL para actualizar la fila correspondiente
     let resultado = sqlx::query!(
         r#"UPDATE lecciones SET titulo = ?, descripcion = ?, url_video = ? WHERE id = ?"#,
         leccion.titulo,
@@ -67,6 +77,7 @@ async fn actualizar_leccion(
     .execute(pool.get_ref())
     .await;
 
+    // Verificamos si se actualizó correctamente
     match resultado {
         Ok(_) => HttpResponse::Ok().body("Lección actualizada"),
         Err(_) => HttpResponse::InternalServerError().body("Error al actualizar lección"),
@@ -74,10 +85,11 @@ async fn actualizar_leccion(
 }
 
 // DELETE: borrar una lección
-#[delete("/lecciones/{id}")]
+#[delete("/lecciones/{id}")] // Esta ruta se activa cuando alguien hace DELETE a /lecciones/{id}
 async fn borrar_leccion(pool: web::Data<sqlx::SqlitePool>, path: web::Path<i32>) -> impl Responder {
-    let id = path.into_inner();
+    let id = path.into_inner(); // Extraemos el ID de la URL
 
+    // Ejecutamos la consulta SQL para eliminar la fila correspondiente
     let resultado = sqlx::query!(
         r#"DELETE FROM lecciones WHERE id = ?"#,
         id
@@ -85,30 +97,40 @@ async fn borrar_leccion(pool: web::Data<sqlx::SqlitePool>, path: web::Path<i32>)
     .execute(pool.get_ref())
     .await;
 
+    // Verificamos si se eliminó correctamente
     match resultado {
         Ok(_) => HttpResponse::Ok().body(format!("Lección {} eliminada", id)),
         Err(_) => HttpResponse::InternalServerError().body("Error al eliminar lección"),
     }
 }
 
-// Función principal
-#[actix_web::main]
+
+//FUNCIÓN PRINCIPAL 
+
+
+// Esta es la función principal que arranca el servidor
+#[actix_web::main] // Macro que indica que es el punto de entrada del servidor Actix
 async fn main() -> std::io::Result<()> {
+    // Creamos el "pool" de conexión a la base de datos SQLite
     let pool = SqlitePoolOptions::new()
-        .connect("sqlite://proyecto_lsd.db")
+        .connect("sqlite://proyecto_lsd.db") // Nos conectamos al archivo proyecto_lsd.db
         .await
         .expect("No se pudo conectar a la base de datos");
 
+    // Iniciamos el servidor HTTP en el puerto 8080
     HttpServer::new(move || {
         App::new()
-            .app_data(web::Data::new(pool.clone()))
-            .service(obtener_lecciones)
-            .service(crear_leccion)
-            .service(actualizar_leccion)
-            .service(borrar_leccion)
+            .app_data(web::Data::new(pool.clone())) // Compartimos la conexión con todas las rutas
+             // Registramos la ruta GET
+        .service(obtener_lecciones)
+        // Registramos la ruta POST
+            .service(crear_leccion) 
+        // Registramos la ruta PUT
+            .service(actualizar_leccion) 
+         // Registramos la ruta DELETE
+            .service(borrar_leccion)               
     })
-    .bind(("127.0.0.1", 8080))?
-    .run()
-    .await
+    .bind(("127.0.0.1", 8080))? // El servidor escucha en localhost:8080
+    .run()  // Arrancamos el servidor
+    .await   // Esperamos a que termine
 }
-
