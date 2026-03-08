@@ -10,8 +10,8 @@ use actix_web::{get, App, HttpResponse, HttpServer, Responder};
 // Esta función se ejecuta cuando alguien entra a http://localhost:8080/
 #[get("/")]
 async fn hello() -> impl Responder {
-    // Respondemos con un mensaje simple en el cuerpo de la respuesta
-    HttpResponse::Ok().body("¡Servidor Rust funcionando!")
+    // Respondemos con un mensaje respuesta
+    HttpResponse::Ok().body("Servidor Rust funcionando")
 }
 
 // Función principal del programa
