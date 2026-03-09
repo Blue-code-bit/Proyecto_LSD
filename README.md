@@ -1,2 +1,2 @@
 # Proyecto_LSD
-Objetivo de crear una página web interactiva para enseñar Lenguaje De Señas
+Objetivo de crear un programa interactivo para enseñar Lenguaje De Señas
