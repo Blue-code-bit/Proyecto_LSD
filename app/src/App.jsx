@@ -6,6 +6,9 @@ import { useState, useEffect, useRef } from 'react'
 // Importamos los estilos de la página
 import './App.css'
 
+// Importamos el componente de la cámara que acabamos de crear
+import HandCamera from './HandCamera'
+
 // Este es el componente principal de la aplicación
 // Todo lo que escribamos aquí aparecerá en la página web
 function App() {
@@ -211,29 +214,21 @@ function App() {
           <h2>Practicando: {leccionActual.titulo} </h2>
           <p className="instruccion"> {leccionActual.instruccion}</p>
 
-          {/* Área de la cámara - próximamente conectaremos MediaPipe aquí */}
-          <div className="camara-container">
-            <video
-              ref={videoRef}
-              className="camara-video"
-              autoPlay
-              playsInline
-            />
-            {/* Texto que aparece sobre la cámara */}
-            <p className="camara-texto">Cámara en construcción 🔧</p>
-          </div>
-
-          {/* Botón para simular que la seña fue detectada */}
-          <button className="btn-detectar" onClick={handleDetectar}>
-             Simular detección de seña
-          </button>
+          {/* Componente de la cámara con detección de manos */}
+<HandCamera
+  onSenaDetectada={(sena) => {
+    // Cuando la cámara detecta la seña correcta, simulamos completar la lección
+    handleDetectar()
+  }}
+  senaObjetivo={leccionActual.titulo}
+/>
 
           {/* Mostramos el resultado de la detección */}
           {resultado === 'correcto' && (
             <div className="resultado-correcto">
               Bien Detectamos: {senaDetectada} — +10 puntos
             </div>
-          )}
+          )}    
 
           {/* Botón para volver a las lecciones */}
           <button className="btn-volver" onClick={() => setPagina('lecciones')}>
