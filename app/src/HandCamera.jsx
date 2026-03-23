@@ -12,46 +12,180 @@ function HandCamera({ onSenaDetectada, senaObjetivo }) {
   const [estado, setEstado] = useState('Presiona "Activar cámara" para comenzar')
 
 
+    
   // FUNCIÓN: Analizar la posición de los dedos
   // Recibe los 21 puntos de la mano y decide qué seña es
+  // Cada punto tiene coordenadas x, y entre 0 y 1
   
   const detectarSena = (landmarks) => {
-    const indice = landmarks[8]
-    const medio = landmarks[12]
-    const anular = landmarks[16]
-    const menique = landmarks[20]
+
+    // Sacamos los puntos clave de la mano
+    const muneca = landmarks[0]  // Base de la mano
+    const pulgarPunta = landmarks[4] // Punta del pulgar
+    const indicePunta = landmarks[8] // Punta del índice
+    const medioPunta = landmarks[12] // Punta del dedo medio
+    const anularPunta = landmarks[16]// Punta del anular
+    const meniquePunta = landmarks[20] // Punta del meñique
+
+    // Articulaciones medias de cada dedo
+    const pulgarMedio = landmarks[3]
     const indiceMedio = landmarks[6]
     const medioMedio = landmarks[10]
     const anularMedio = landmarks[14]
     const meniqueMedio = landmarks[18]
 
-    // Un dedo está extendido si su punta está más arriba que su articulación
-    const indiceExtendido = indice.y < indiceMedio.y
-    const medioExtendido = medio.y < medioMedio.y
-    const anularExtendido = anular.y < anularMedio.y
-    const meniqueExtendido = menique.y < meniqueMedio.y
+    // Base de cada dedo (donde se une con la palma)
+    const indiceBase = landmarks[5]
+    const medioBase = landmarks[9]
+
+    
+    // Calculamos si cada dedo está extendido o doblado
+    // Un dedo está extendido si su punta está más arriba
+    // que su articulación media (y menor = más arriba)
+    
+    const indiceExtendido = indicePunta.y < indiceMedio.y
+    const medioExtendido = medioPunta.y < medioMedio.y
+    const anularExtendido = anularPunta.y < anularMedio.y
+    const meniqueExtendido = meniquePunta.y < meniqueMedio.y
+
+    // El pulgar se mide diferente porque se mueve en horizontal
+    const pulgarExtendido = pulgarPunta.x < pulgarMedio.x
+
+    // Calculamos la distancia entre dos puntos
+    // Útil para detectar si dos dedos están juntos o separados
+    const distancia = (p1, p2) => {
+      return Math.sqrt(
+        Math.pow(p1.x - p2.x, 2) +
+        Math.pow(p1.y - p2.y, 2)
+      )
+    }
+
+    
+    // ABECEDARIO LSM
+    
 
     // LETRA A: Puño cerrado, ningún dedo extendido
     if (!indiceExtendido && !medioExtendido && !anularExtendido && !meniqueExtendido) {
       return 'Letra A'
     }
-    // LETRA B: Los 4 dedos extendidos
+
+    // LETRA B: Los 4 dedos extendidos y juntos
     if (indiceExtendido && medioExtendido && anularExtendido && meniqueExtendido) {
-      return 'Letra B'
+      const dedosJuntos = distancia(indicePunta, medioPunta) < 0.05
+      if (dedosJuntos) return 'Letra B'
     }
-    // LETRA C: Índice y medio extendidos
+
+    // LETRA C: Solo índice y medio extendidos y separados
     if (indiceExtendido && medioExtendido && !anularExtendido && !meniqueExtendido) {
       return 'Letra C'
     }
+
     // LETRA D: Solo índice extendido
     if (indiceExtendido && !medioExtendido && !anularExtendido && !meniqueExtendido) {
       return 'Letra D'
     }
+
     // LETRA E: Solo meñique extendido
     if (!indiceExtendido && !medioExtendido && !anularExtendido && meniqueExtendido) {
       return 'Letra E'
     }
 
+    
+    // SALUDOS
+
+
+    // HOLA: Mano abierta con todos los dedos extendidos y separados
+    if (indiceExtendido && medioExtendido && anularExtendido && meniqueExtendido) {
+      const dedosSeparados = distancia(indicePunta, medioPunta) > 0.05
+      if (dedosSeparados) return 'Hola'
+    }
+
+    // ADIÓS: Igual que hola pero la mano inclinada
+    // Lo detectamos cuando la muñeca está más alta que la base del índice
+    if (indiceExtendido && medioExtendido && anularExtendido && meniqueExtendido) {
+      const manoInclinada = muneca.y < indiceBase.y
+      if (manoInclinada) return 'Adiós'
+    }
+
+    // POR FAVOR: Mano abierta con palma hacia arriba
+    // El medio está más alto que la muñeca
+    if (indiceExtendido && medioExtendido && anularExtendido && meniqueExtendido) {
+      const palmaArriba = medioPunta.y < muneca.y - 0.1
+      if (palmaArriba) return 'Por favor'
+    }
+
+    // GRACIAS: Índice y medio extendidos tocando cerca de la cara
+    // Los detectamos cuando la punta del índice está muy arriba
+    if (indiceExtendido && medioExtendido && !anularExtendido && !meniqueExtendido) {
+      const manoArriba = indicePunta.y < 0.3
+      if (manoArriba) return 'Gracias'
+    }
+
+    
+    // BUENOS DÍAS / TARDES / NOCHES
+    
+
+    // BUENOS DÍAS: Ambas manos abiertas hacia arriba
+    // Lo simulamos con mano abierta apuntando hacia arriba
+    if (indiceExtendido && medioExtendido && anularExtendido && meniqueExtendido) {
+      const apuntaArriba = indicePunta.y < 0.2
+      if (apuntaArriba) return 'Buenos días'
+    }
+
+    // BUENAS TARDES: Mano horizontal moviéndose hacia abajo
+    // Lo detectamos con mano abierta a altura media
+    if (indiceExtendido && medioExtendido && anularExtendido && meniqueExtendido) {
+      const alturaMedia = indicePunta.y > 0.3 && indicePunta.y < 0.6
+      if (alturaMedia) return 'Buenas tardes'
+    }
+
+    // BUENAS NOCHES: Manos cruzadas frente al pecho
+    // Lo detectamos con puño cerrado a altura del pecho
+    if (!indiceExtendido && !medioExtendido && !anularExtendido && !meniqueExtendido) {
+      const alturaPecho = muneca.y > 0.4 && muneca.y < 0.7
+      if (alturaPecho) return 'Buenas noches'
+    }
+
+    // HASTA MAÑANA: Índice extendido apuntando hacia adelante
+    if (indiceExtendido && !medioExtendido && !anularExtendido && !meniqueExtendido) {
+      const apuntaAdelante = indicePunta.y > 0.4
+      if (apuntaAdelante) return 'Hasta mañana'
+    }
+
+    
+    // GROCERIAS
+
+
+    // WEY: Índice y meñique extendidos (cuernos)
+    if (indiceExtendido && !medioExtendido && !anularExtendido && meniqueExtendido) {
+      return 'Wey'
+    }
+
+    // NACO: Pulgar hacia abajo
+    if (pulgarExtendido && !indiceExtendido && !medioExtendido && !anularExtendido && !meniqueExtendido) {
+      const pulgarAbajo = pulgarPunta.y > muneca.y
+      if (pulgarAbajo) return 'Naco'
+    }
+
+    // METICHE: Índice apuntando hacia adelante a altura media
+    if (indiceExtendido && !medioExtendido && !anularExtendido && !meniqueExtendido) {
+      const alturaMedia = indicePunta.y > 0.35 && indicePunta.y < 0.65
+      if (alturaMedia) return 'Metiche'
+    }
+
+    // CHISMOSO: Mano en C cerca de la boca
+    // Detectamos índice y pulgar formando una O/C
+    if (!medioExtendido && !anularExtendido && !meniqueExtendido) {
+      const formandoC = distancia(indicePunta, pulgarPunta) < 0.08
+      if (formandoC) return 'Chismoso'
+    }
+
+    // CHAFA: Pulgar hacia abajo moviéndose
+    if (pulgarExtendido && !indiceExtendido && !medioExtendido) {
+      return 'Chafa'
+    }
+
+    // Si no coincide con ninguna seña
     return null
   }
 

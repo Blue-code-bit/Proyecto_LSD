@@ -1,131 +1,139 @@
 // Importamos las herramientas de React que necesitamos
-// useState = para guardar datos que cambian (como el nombre del usuario)
-// useEffect = para ejecutar código cuando la página carga
-import { useState, useEffect, useRef } from 'react'
+import { useState, useRef } from 'react'
 
 // Importamos los estilos de la página
 import './App.css'
 
-// Importamos el componente de la cámara que acabamos de crear
+// Importamos el componente de la cámara
 import HandCamera from './HandCamera'
 
-// Este es el componente principal de la aplicación
-// Todo lo que escribamos aquí aparecerá en la página web
 function App() {
 
-
+  
   // VARIABLES DE ESTADO
-  // Son como "cajitas" que guardan información.
-  // Cuando cambian, la página se actualiza automáticamente.
   
 
-  // Guarda el nombre que escribe el usuario al registrarse
+  // Nombre del usuario
   const [nombre, setNombre] = useState('')
 
-  // Controla en qué página estamos: 'inicio', 'lecciones', 'practica', 'perfil'
+  // Página actual: 'inicio', 'modulos', 'lecciones', 'practica', 'perfil'
   const [pagina, setPagina] = useState('inicio')
 
-  // Guarda el progreso del usuario (puntos y lecciones completadas)
+  // Módulo seleccionado actualmente
+  const [moduloActual, setModuloActual] = useState(null)
+
+  // Lección actual que está practicando
+  const [leccionActual, setLeccionActual] = useState(null)
+
+  // Progreso del usuario
   const [progreso, setProgreso] = useState({
     puntos: 0,
     leccionesCompletadas: 0,
     certificado: false
   })
 
-  // Guarda si el usuario ya está registrado o no
+  // Si el usuario ya está registrado
   const [registrado, setRegistrado] = useState(false)
 
-  // Guarda la seña que detectó la cámara
+  // Resultado de la detección
+  const [resultado, setResultado] = useState('')
   const [senaDetectada, setSenaDetectada] = useState('')
 
-  // Guarda si la seña fue correcta o incorrecta
-  const [resultado, setResultado] = useState('')
-
-  // Referencia al elemento de video de la cámara
-  const videoRef = useRef(null)
-
-  // Lección actual que está practicando el usuario
-  const [leccionActual, setLeccionActual] = useState(null)
-
   
-  // LISTA DE LECCIONES
-  // Cada lección tiene un ID, título, descripción y
-  // descripción de cómo hacer la seña con los dedos.
+  // MÓDULOS TEMÁTICOS
+  // Cada módulo tiene un ícono, título, descripción, color y lecciones
   
-  const lecciones = [
+  const modulos = [
     {
-      id: 1,
-      titulo: 'Letra A',
-      descripcion: 'Aprende a hacer la letra A en Lengua de Señas Mexicana',
-      instruccion: 'Cierra el puño con el pulgar al lado'
+      id: 'abecedario',
+      icono: '🔤',
+      titulo: 'Abecedario LSM',
+      descripcion: 'Aprende las 27 letras del alfabeto en Lengua de Señas Mexicana',
+      color: '#9945ff',
+      lecciones: [
+        { id: 1, titulo: 'Letra A', instruccion: 'Cierra el puño con el pulgar al lado' },
+        { id: 2, titulo: 'Letra B', instruccion: 'Extiende los 4 dedos juntos, dobla el pulgar' },
+        { id: 3, titulo: 'Letra C', instruccion: 'Forma una C con todos los dedos curvados' },
+        { id: 4, titulo: 'Letra D', instruccion: 'Índice apuntando arriba, demás dedos tocando el pulgar' },
+        { id: 5, titulo: 'Letra E', instruccion: 'Dobla todos los dedos hacia la palma' },
+      ]
     },
     {
-      id: 2,
-      titulo: 'Letra B',
-      descripcion: 'Aprende a hacer la letra B en Lengua de Señas Mexicana',
-      instruccion: 'Extiende los 4 dedos juntos, dobla el pulgar'
+      id: 'saludos',
+      icono: '👋',
+      titulo: 'Saludos',
+      descripcion: 'Aprende a saludar y despedirte en Lengua de Señas Mexicana',
+      color: '#14f195',
+      lecciones: [
+        { id: 6, titulo: 'Hola', instruccion: 'Agita la mano abierta de lado a lado' },
+        { id: 7, titulo: 'Adiós', instruccion: 'Extiende la mano y dobla los dedos hacia abajo repetidamente' },
+        { id: 8, titulo: 'Por favor', instruccion: 'Mano abierta en el pecho, mueve en círculos' },
+        { id: 9, titulo: 'Gracias', instruccion: 'Toca los labios con la mano y extiéndela hacia adelante' },
+      ]
     },
     {
-      id: 3,
-      titulo: 'Letra C',
-      descripcion: 'Aprende a hacer la letra C en Lengua de Señas Mexicana',
-      instruccion: 'Forma una C con todos los dedos curvados'
+      id: 'tiempo',
+      icono: '🌅',
+      titulo: 'Buenos días / tardes / noches',
+      descripcion: 'Aprende a expresar los saludos del día en LSM',
+      color: '#f59e0b',
+      lecciones: [
+        { id: 10, titulo: 'Buenos días', instruccion: 'Señala hacia arriba con ambas manos abiertas' },
+        { id: 11, titulo: 'Buenas tardes', instruccion: 'Mano horizontal moviéndose hacia abajo lentamente' },
+        { id: 12, titulo: 'Buenas noches', instruccion: 'Manos cruzadas frente al pecho, inclina la cabeza' },
+        { id: 13, titulo: 'Hasta mañana', instruccion: 'Señala hacia adelante y luego cierra la mano' },
+      ]
     },
     {
-      id: 4,
-      titulo: 'Letra D',
-      descripcion: 'Aprende a hacer la letra D en Lengua de Señas Mexicana',
-      instruccion: 'Índice apuntando arriba, demás dedos tocando el pulgar'
-    },
-    {
-      id: 5,
-      titulo: 'Letra E',
-      descripcion: 'Aprende a hacer la letra E en Lengua de Señas Mexicana',
-      instruccion: 'Dobla todos los dedos hacia la palma'
-    },
+      
+  id: 'groserias',
+  icono: '🤬',
+  titulo: 'Groserías',
+  descripcion: 'Aprende las palabras coloquiales y groserías más comunes en LSM',
+  color: '#ef4444',
+  lecciones: [
+    { id: 14, titulo: 'Wey', instruccion: 'Señala con el índice y mueve la mano de lado a lado' },
+    { id: 15, titulo: 'Tonto', instruccion: 'Toca la sien con el índice y gira levemente' },
+    { id: 16, titulo: 'Metiche', instruccion: 'Índice apuntando hacia adelante moviéndose repetidamente' },
+    { id: 17, titulo: 'Exagerado', instruccion: 'Ambas manos abiertas moviéndose hacia afuera exageradamente' },
+    { id: 18, titulo: 'Flojo', instruccion: 'Mano caída hacia abajo con muñeca suelta' },
+  { id: 15, titulo: 'Naco', instruccion: 'Pulgar hacia abajo con expresión de desaprobación' },
+  ]
+,
+    }
   ]
 
   
-  // FUNCIÓN: Registrar usuario
-  // Se llama cuando el usuario hace clic en "Registrarse"
-  
+  // FUNCIONES
+
+  // Registrar usuario
   const handleRegistro = () => {
-    // Verificamos que haya escrito su nombre
     if (!nombre.trim()) {
       alert('Por favor escribe tu nombre')
       return
     }
-    // Marcamos que el usuario ya está registrado
     setRegistrado(true)
-    // Lo llevamos a la página de lecciones
+    setPagina('modulos')
+  }
+
+  // Entrar a un módulo
+  const handleModulo = (modulo) => {
+    setModuloActual(modulo)
     setPagina('lecciones')
   }
 
-  
-  // FUNCIÓN: Iniciar práctica de una lección
-  // Se llama cuando el usuario hace clic en "Practicar"
-
+  // Practicar una lección
   const handlePracticar = (leccion) => {
-    // Guardamos qué lección va a practicar
     setLeccionActual(leccion)
-    // Limpiamos el resultado anterior
     setResultado('')
     setSenaDetectada('')
-    // Lo llevamos a la página de práctica con la cámara
     setPagina('practica')
   }
 
-  
-  // FUNCIÓN: Simular detección de seña
-  // Por ahora simula que la cámara detectó la seña correcta.
-  // Más adelante aquí conectaremos MediaPipe.
-  
+  // Cuando la cámara detecta una seña correcta
   const handleDetectar = () => {
-    // Simulamos que la seña fue detectada correctamente
     setSenaDetectada(leccionActual.titulo)
     setResultado('correcto')
-
-    // Sumamos 10 puntos al progreso del usuario
     setProgreso(prev => ({
       ...prev,
       puntos: prev.puntos + 10,
@@ -133,10 +141,7 @@ function App() {
     }))
   }
 
-  
-  // FUNCIÓN: Reclamar certificado
-  // Solo funciona si el usuario tiene 100 o más puntos
-
+  // Reclamar certificado
   const handleCertificado = () => {
     if (progreso.puntos >= 100) {
       setProgreso(prev => ({ ...prev, certificado: true }))
@@ -146,20 +151,20 @@ function App() {
     }
   }
 
-  
-  // LO QUE SE MUESTRA EN PANTALLA
-  // Dependiendo de la página actual, mostramos contenido diferente
+
+  // PANTALLA
 
   return (
     <div className="app">
 
-      {/* BARRA DE NAVEGACIÓN - siempre visible */}
+      {/* BARRA DE NAVEGACIÓN */}
       <nav className="navbar">
-        <h1 className="logo"> LSM Aprende</h1>
+        <h1 className="logo" onClick={() => registrado && setPagina('modulos')} style={{cursor: registrado ? 'pointer' : 'default'}}>
+           LSM APPRENDE
+        </h1>
         {registrado && (
           <div className="nav-links">
-            {/* Botones para navegar entre páginas */}
-            <button onClick={() => setPagina('lecciones')}>Lecciones</button>
+            <button onClick={() => setPagina('modulos')}>Módulos</button>
             <button onClick={() => setPagina('perfil')}>
               Mi perfil ({progreso.puntos} pts)
             </button>
@@ -167,40 +172,85 @@ function App() {
         )}
       </nav>
 
-      {/* PÁGINA DE INICIO - aparece cuando pagina === 'inicio' */}
+      {/* PÁGINA DE INICIO */}
       {pagina === 'inicio' && (
         <div className="pagina-inicio">
-          <h2>Bienvenida a LSM Aprende </h2>
-          <p>Aprende Lengua de Señas Mexicana de forma interactiva con tu cámara.</p>
-
-          {/* Formulario de registro */}
+          <div className="inicio-hero">
+            <h2>Aprende LSM con tu cámara </h2>
+            <p>Lengua de Señas Mexicana de forma interactiva, con detección de manos en tiempo real y progreso guardado en blockchain.</p>
+          </div>
           <div className="registro">
             <input
               type="text"
               placeholder="¿Cómo te llamas?"
               value={nombre}
-              // Cada vez que el usuario escribe, actualizamos el estado "nombre"
               onChange={(e) => setNombre(e.target.value)}
+              onKeyDown={(e) => e.key === 'Enter' && handleRegistro()}
             />
-            <button onClick={handleRegistro}>Comenzar a aprender</button>
+            <button onClick={handleRegistro}>Comenzar a aprender →</button>
           </div>
         </div>
       )}
 
-      {/* PÁGINA DE LECCIONES - lista de señas para aprender */}
-      {pagina === 'lecciones' && (
-        <div className="pagina-lecciones">
-          <h2>Lecciones disponibles </h2>
-          <p>Hola {nombre}, elige una lección para practicar:</p>
+      {/* PÁGINA DE MÓDULOS */}
+      {pagina === 'modulos' && (
+        <div className="pagina-modulos">
+          <h2>Hola {nombre} ¿Qué quieres aprender hoy?</h2>
+          <p className="subtitulo">Elige un módulo para comenzar</p>
 
-          {/* Mostramos cada lección como una tarjeta */}
+          {/* Grid de módulos */}
+          <div className="grid-modulos">
+            {modulos.map((modulo) => (
+              <div
+                key={modulo.id}
+                className="tarjeta-modulo"
+                style={{ borderColor: modulo.color }}
+                onClick={() => handleModulo(modulo)}
+              >
+                {/* Ícono grande del módulo */}
+                <div className="modulo-icono" style={{ backgroundColor: modulo.color + '20' }}>
+                  <span>{modulo.icono}</span>
+                </div>
+
+                {/* Info del módulo */}
+                <div className="modulo-info">
+                  <h3 style={{ color: modulo.color }}>{modulo.titulo}</h3>
+                  <p>{modulo.descripcion}</p>
+                  <span className="modulo-lecciones">{modulo.lecciones.length} lecciones</span>
+                </div>
+
+                {/* Flecha */}
+                <div className="modulo-flecha" style={{ color: modulo.color }}>→</div>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {/* PÁGINA DE LECCIONES DE UN MÓDULO */}
+      {pagina === 'lecciones' && moduloActual && (
+        <div className="pagina-lecciones">
+
+          {/* Header del módulo */}
+          <div className="lecciones-header" style={{ borderColor: moduloActual.color }}>
+            <button className="btn-volver" onClick={() => setPagina('modulos')}>← Volver</button>
+            <h2 style={{ color: moduloActual.color }}>
+              {moduloActual.icono} {moduloActual.titulo}
+            </h2>
+            <p>{moduloActual.descripcion}</p>
+          </div>
+
+          {/* Grid de lecciones */}
           <div className="grid-lecciones">
-            {lecciones.map((leccion) => (
-              <div key={leccion.id} className="tarjeta-leccion">
+            {moduloActual.lecciones.map((leccion) => (
+              <div key={leccion.id} className="tarjeta-leccion" style={{ borderColor: moduloActual.color + '60' }}>
                 <h3>{leccion.titulo}</h3>
-                <p>{leccion.descripcion}</p>
-                <button onClick={() => handlePracticar(leccion)}>
-                  Practicar 
+                <p>{leccion.instruccion}</p>
+                <button
+                  style={{ backgroundColor: moduloActual.color }}
+                  onClick={() => handlePracticar(leccion)}
+                >
+                  Practicar 📷
                 </button>
               </div>
             ))}
@@ -208,51 +258,43 @@ function App() {
         </div>
       )}
 
-      {/* PÁGINA DE PRÁCTICA - aquí va la cámara */}
+      {/* PÁGINA DE PRÁCTICA CON CÁMARA */}
       {pagina === 'practica' && leccionActual && (
         <div className="pagina-practica">
+          <button className="btn-volver" onClick={() => setPagina('lecciones')}>← Volver</button>
           <h2>Practicando: {leccionActual.titulo} </h2>
-          <p className="instruccion"> {leccionActual.instruccion}</p>
+          <p className="instruccion">{leccionActual.instruccion}</p>
 
-          {/* Componente de la cámara con detección de manos */}
-<HandCamera
-  onSenaDetectada={(sena) => {
-    // Cuando la cámara detecta la seña correcta, simulamos completar la lección
-    handleDetectar()
-  }}
-  senaObjetivo={leccionActual.titulo}
-/>
+          {/* Componente de cámara con detección */}
+          <HandCamera
+            onSenaDetectada={(sena) => handleDetectar()}
+            senaObjetivo={leccionActual.titulo}
+          />
 
-          {/* Mostramos el resultado de la detección */}
+          {/* Resultado de la detección */}
           {resultado === 'correcto' && (
             <div className="resultado-correcto">
-              Bien Detectamos: {senaDetectada} — +10 puntos
+              Correcto :D Detectamos: {senaDetectada} — +10 puntos
             </div>
-          )}    
-
-          {/* Botón para volver a las lecciones */}
-          <button className="btn-volver" onClick={() => setPagina('lecciones')}>
-            ← Volver a lecciones
-          </button>
+          )}
         </div>
       )}
 
-      {/* PÁGINA DE PERFIL - muestra el progreso del usuario */}
+      {/* PÁGINA DE PERFIL */}
       {pagina === 'perfil' && (
         <div className="pagina-perfil">
-          <h2>Mi perfil </h2>
+          <h2>Mi perfil 👤</h2>
           <div className="perfil-info">
-            <p>Nombre: <strong>{nombre}</strong></p>
+            <p> Nombre: <strong>{nombre}</strong></p>
             <p>Puntos: <strong>{progreso.puntos}</strong></p>
             <p>Lecciones completadas: <strong>{progreso.leccionesCompletadas}</strong></p>
-            <p>Certificado: <strong>{progreso.certificado ? 'Obtenido' : 'Pendiente'}</strong></p>
+            <p>Certificado: <strong>{progreso.certificado ? '¡Obtenido!' : 'Pendiente'}</strong></p>
           </div>
 
-          {/* Barra de progreso hacia el certificado */}
+          {/* Barra de progreso */}
           <div className="barra-progreso">
             <p>Progreso hacia certificado: {progreso.puntos}/100 puntos</p>
             <div className="barra-fondo">
-              {/* El ancho de la barra cambia según los puntos */}
               <div
                 className="barra-relleno"
                 style={{ width: `${Math.min(progreso.puntos, 100)}%` }}
@@ -260,14 +302,12 @@ function App() {
             </div>
           </div>
 
-          {/* Botón para reclamar el certificado */}
           <button
             className="btn-certificado"
             onClick={handleCertificado}
-            // Desactivamos el botón si ya tiene el certificado
             disabled={progreso.certificado}
           >
-            {progreso.certificado ? 'Certificado obtenido :D' : '🎓 Reclamar certificado'}
+            {progreso.certificado ? '🏆 Certificado obtenido' : '🎓 Reclamar certificado'}
           </button>
         </div>
       )}
@@ -276,5 +316,4 @@ function App() {
   )
 }
 
-// Exportamos el componente para que otros archivos puedan usarlo
 export default App
