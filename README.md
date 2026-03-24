@@ -1,66 +1,39 @@
-# Proyecto_LSM
-Objetivo de crear un programa interactivo para enseñar Lenguaje De Señas mediante una camara web y
-tecnología blockchain de Solana.
+LSM Aprende
 
-LSM Aprende combina visión por computadora con blockchain para crear una experiencia única de aprendizaje:
-- **Detección de manos en tiempo real** usando MediaPipe de Google
-  **Progreso guardado en blockchain** usando Solana + Anchor
-- **Certificados on-chain** al completar las lecciones
-- **Lecciones interactivas** del abecedario LSM
+Una app web para aprender Lengua de Señas Mexicana con la cámara de tu compu. La idea es : ves la seña, la imitas frente a la cámara, y la app te dice si la hiciste bien.
+Apesar de que  , por el tiempo aun tiene algunos detalles , la idea esta bien estructurada y se hizo lo que se pudo jajaj
 
-## Tecnologías usadas
+Por ahorita la app tiene tres módulos:
 
-### Blockchain (on-chain)
-- **Rust + Anchor** — Smart contract en Solana
-- **Solana Devnet** — Red de pruebas
+- **Abecedario** — las primeras letras del alfabeto en LSM
+- **Saludos** — hola, adiós, gracias, por favor
+- **Coloquial** — expresiones mexicanas de uso cotidiano
 
-### Frontend (off-chain)
-- **React + Vite** — Interfaz de usuario
-- **MediaPipe Hands** — Detección de manos con IA
-- **Solana Wallet Adapter** — Conexión con wallets
+Cada lección tiene un video de referencia y la cámara activa para que practiques en tiempo real.Aunque por el momento no las 
+reconozca del todo ya que , al existir señas parecidad, se confunde y las interpreta de forma incorecta 
 
-## Funcionalidades del Smart Contract
+¿Cómo funciona por dentro?
 
-| Instrucción | Descripción |
-|---|---|
-| `crear_leccion` | Crea una lección de señas on-chain |
-| `actualizar_leccion` | Actualiza el contenido de una lección |
-| `borrar_leccion` | Elimina una lección de blockchain |
-| `registrar_usuario` | Crea el perfil del estudiante |
-| `completar_leccion` | Suma 10 puntos al completar una seña |
-| `reclamar_certificado` | Emite un certificado al llegar a 100 pts |
+Usa **MediaPipe Hands** (una librería de Google) que detecta 21 puntos de tu mano a través de la cámara. Con esos puntos, la app analiza qué dedos están extendidos o doblados y decide qué seña estás haciendo. Si coincide con la lección que estás practicando, te da puntos 
 
-## Cómo correr el proyecto localmente
+¿Cómo correrlo?
 
-### Requisitos
-- Node.js v18+
-- Rust
-- Solana CLI
-- Anchor CLI
-
-### Pasos
 ```bash
-# Clonar el repositorio
-git clone https://github.com/Blue-code-bit/Proyecto_LSD.git
-cd Proyecto_LSD
-
-# Instalar dependencias del frontend
-cd app
+git clone https://github.com/TU_USUARIO/TU_REPO.git
+cd Proyecto_LSD/app
 npm install
-
-# Correr el frontend
 npm run dev
-```
 
-Abre `http://localhost:5173` en tu navegador.
 
-## Program ID en Solana Devnet
-```
-9jgxxoABZciCdDN4f9Stwv9sTaJkQmyT682NtR4bryME
-```
+Luego abre `http://localhost:5173` en tu navegador y listo.
 
-## Autor
 
-**Azul** — [@Blue-code-bit](https://github.com/Blue-code-bit)
+Tecnologías que usé
 
-Proyecto desarrollado para WayLearn Latam — comunidad Web3 en Latinoamérica.
+React + Vite
+  MediaPipe Hands (detección de manos en el navegador)
+  CSS puro para los estilos
+
+---
+
+Hecho por **Azul** como proyecto de accesibilidad para la comunidad sorda de México 🇲🇽
